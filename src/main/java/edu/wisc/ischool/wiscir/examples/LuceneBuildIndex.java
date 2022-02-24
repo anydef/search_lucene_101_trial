@@ -104,8 +104,13 @@ public class LuceneBuildIndex {
             instream.close();
 
             Pattern pattern = Pattern.compile(
-                    //"<DOC>.+?<DOCNO>(.+?)</DOCNO>.+?<TITLE>(.+?)</TITLE>.+?<AUTHOR>(.+?)</AUTHOR>.+?<SOURCE>(.+?)</SOURCE>.+?<TEXT>(.+?)</TEXT>.+?</DOC>",
-                    "<searchVariation.+?><id>(.+?)</id>.+?<title>(.+?)</title>.+?<brandName>(.+?)</brandName>.+?<produktBasisKlasse>(.+?)</produktBasisKlasse>.+?<productType>(.+?)</productType>.+?</searchVariation>",
+                    "<searchVariation.+?>" +
+                            "<id>(.+?)</id>.+?" +
+                            "<title>(.+?)</title>.+?" +
+                            "<brandName>(.+?)</brandName>.+?" +
+                            "<produktBasisKlasse>(.+?)</produktBasisKlasse>.+?" +
+                            "<productType>(.+?)</productType>.+?" +
+                            "</searchVariation>",
                     Pattern.CASE_INSENSITIVE + Pattern.MULTILINE + Pattern.DOTALL
             );
 

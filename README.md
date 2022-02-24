@@ -126,97 +126,105 @@ Some IR systems also support storing and indexing numeric values
 
 This is an example program that uses Lucene to build an index for the example corpus. 
 ```java
-  // change the following input and output paths to your local ones
-  String pathCorpus = "example_corpus.gz";
-  String pathIndex = "example_index_lucene";
-  
-  Directory dir = FSDirectory.open( new File( pathIndex ).toPath() );
-  
-  // Analyzer specifies options for text tokenization and normalization (e.g., stemming, stop words removal, case-folding)
-  Analyzer analyzer = new Analyzer() {
-      @Override
-      protected TokenStreamComponents createComponents( String fieldName ) {
-          // Step 1: tokenization (Lucene's StandardTokenizer is suitable for most text retrieval occasions)
-          TokenStreamComponents ts = new TokenStreamComponents( new StandardTokenizer() );
-          // Step 2: transforming all tokens into lowercased ones (recommended for the majority of the problems)
-          ts = new TokenStreamComponents( ts.getSource(), new LowerCaseFilter( ts.getTokenStream() ) );
-          // Step 3: whether to remove stop words (unnecessary to remove stop words unless you can't afford the extra disk space)
-          // Uncomment the following line to remove stop words
-          // ts = new TokenStreamComponents( ts.getSource(), new StopFilter( ts.getTokenStream(), EnglishAnalyzer.ENGLISH_STOP_WORDS_SET ) );
-          // Step 4: whether to apply stemming
-          // Uncomment one of the following two lines to apply Krovetz or Porter stemmer (Krovetz is more common for IR research)
-          ts = new TokenStreamComponents( ts.getSource(), new KStemFilter( ts.getTokenStream() ) );
-          // ts = new TokenStreamComponents( ts.getSource(), new PorterStemFilter( ts.getTokenStream() ) );
-          return ts;
-      }
-  };
-  
-  IndexWriterConfig config = new IndexWriterConfig( analyzer );
-  // Note that IndexWriterConfig.OpenMode.CREATE will override the original index in the folder
-  config.setOpenMode( IndexWriterConfig.OpenMode.CREATE );
-  // Lucene's default BM25Similarity stores document field length using a "low-precision" method.
-  // Use the BM25SimilarityOriginal to store the original document length values in index.
-  config.setSimilarity( new BM25SimilarityOriginal() );
-  
-  IndexWriter ixwriter = new IndexWriter( dir, config );
-  
-  // This is the field setting for metadata field (no tokenization, searchable, and stored).
-  FieldType fieldTypeMetadata = new FieldType();
-  fieldTypeMetadata.setOmitNorms( true );
-  fieldTypeMetadata.setIndexOptions( IndexOptions.DOCS );
-  fieldTypeMetadata.setStored( true );
-  fieldTypeMetadata.setTokenized( false );
-  fieldTypeMetadata.freeze();
-  
-  // This is the field setting for normal text field (tokenized, searchable, store document vectors)
-  FieldType fieldTypeText = new FieldType();
-  fieldTypeText.setIndexOptions( IndexOptions.DOCS_AND_FREQS_AND_POSITIONS );
-  fieldTypeText.setStoreTermVectors( true );
-  fieldTypeText.setStoreTermVectorPositions( true );
-  fieldTypeText.setTokenized( true );
-  fieldTypeText.setStored( true );
-  fieldTypeText.freeze();
-  
-  // You need to iteratively read each document from the example corpus file,
-  // create a Document object for the parsed document, and add that
-  // Document object by calling addDocument().
-  
-  // Well, the following only works for small text files. DO NOT follow this part for large dataset files.
-  InputStream instream = new GZIPInputStream( new FileInputStream( pathCorpus ) );
-  String corpusText = new String( IOUtils.toByteArray( instream ), "UTF-8" );
-  instream.close();
-  
-  Pattern pattern = Pattern.compile(
-      "<DOC>.+?<DOCNO>(.+?)</DOCNO>.+?<TITLE>(.+?)</TITLE>.+?<AUTHOR>(.+?)</AUTHOR>.+?<SOURCE>(.+?)</SOURCE>.+?<TEXT>(.+?)</TEXT>.+?</DOC>",
-      Pattern.CASE_INSENSITIVE + Pattern.MULTILINE + Pattern.DOTALL
-  );
-  
-  Matcher matcher = pattern.matcher( corpusText );
-  
-  while ( matcher.find() ) {
-  
-      String docno = matcher.group( 1 ).trim();
-      String title = matcher.group( 2 ).trim();
-      String author = matcher.group( 3 ).trim();
-      String source = matcher.group( 4 ).trim();
-      String text = matcher.group( 5 ).trim();
-      
-      // Create a Document object
-      Document d = new Document();
-      // Add each field to the document with the appropriate field type options
-      d.add( new Field( "docno", docno, fieldTypeMetadata ) );
-      d.add( new Field( "title", title, fieldTypeText ) );
-      d.add( new Field( "author", author, fieldTypeText ) );
-      d.add( new Field( "source", source, fieldTypeText ) );
-      d.add( new Field( "text", text, fieldTypeText ) );
-      // Add the document to the index
-      System.out.println( "indexing document " + docno );
-      ixwriter.addDocument( d );
-  }
-  
-  // remember to close both the index writer and the directory
-  ixwriter.close();
-  dir.close();
+// change the following input and output paths to your local ones
+String pathCorpus = "example_search_variation_otto.xml.gz";
+String pathIndex = "example_index_lucene";
+Directory dir = FSDirectory.open( new File( pathIndex ).toPath() );
+
+// Analyzer specifies options for text tokenization and normalization (e.g., stemming, stop words removal, case-folding)
+Analyzer analyzer = new Analyzer() {
+@Override
+protected TokenStreamComponents createComponents( String fieldName ) {
+// Step 1: tokenization (Lucene's StandardTokenizer is suitable for most text retrieval occasions)
+TokenStreamComponents ts = new TokenStreamComponents( new StandardTokenizer() );
+// Step 2: transforming all tokens into lowercased ones (recommended for the majority of the problems)
+ts = new TokenStreamComponents( ts.getSource(), new LowerCaseFilter( ts.getTokenStream() ) );
+// Step 3: whether to remove stop words (unnecessary to remove stop words unless you can't afford the extra disk space)
+// Uncomment the following line to remove stop words
+ts = new TokenStreamComponents( ts.getSource(), new StopFilter( ts.getTokenStream(), GermanAnalyzer.getDefaultStopSet()) );
+// Step 4: whether to apply stemming
+// Uncomment one of the following two lines to apply Krovetz or Porter stemmer (Krovetz is more common for IR research)
+ts = new TokenStreamComponents( ts.getSource(), new GermanLightStemFilter( ts.getTokenStream() ) );
+//ts = new TokenStreamComponents( ts.getSource(), new GermanStemFilter( ts.getTokenStream() ) );
+return ts;
+}
+};
+
+IndexWriterConfig config = new IndexWriterConfig( analyzer );
+// Note that IndexWriterConfig.OpenMode.CREATE will override the original index in the folder
+config.setOpenMode( IndexWriterConfig.OpenMode.CREATE );
+// Lucene's default BM25Similarity stores document field length using a "low-precision" method.
+// Use the BM25SimilarityOriginal to store the original document length values in index.
+config.setSimilarity( new BM25SimilarityOriginal() );
+
+IndexWriter ixwriter = new IndexWriter( dir, config );
+
+// This is the field setting for metadata field (no tokenization, searchable, and stored).
+FieldType fieldTypeMetadata = new FieldType();
+fieldTypeMetadata.setOmitNorms( true );
+fieldTypeMetadata.setIndexOptions( IndexOptions.DOCS );
+fieldTypeMetadata.setStored( true );
+fieldTypeMetadata.setTokenized( false );
+fieldTypeMetadata.freeze();
+
+// This is the field setting for normal text field (tokenized, searchable, store document vectors)
+FieldType fieldTypeText = new FieldType();
+fieldTypeText.setIndexOptions( IndexOptions.DOCS_AND_FREQS_AND_POSITIONS );
+fieldTypeText.setStoreTermVectors( true );
+fieldTypeText.setStoreTermVectorPositions( true );
+fieldTypeText.setTokenized( true );
+fieldTypeText.setStored( true );
+fieldTypeText.freeze();
+
+// You need to iteratively read each document from the example corpus file,
+// create a Document object for the parsed document, and add that
+// Document object by calling addDocument().
+
+// Well, the following only works for small text files. DO NOT follow this part for large dataset files.
+InputStream instream = new GZIPInputStream( new FileInputStream( pathCorpus ) );
+String corpusText = new String( IOUtils.toByteArray( instream ), "UTF-8" );
+instream.close();
+
+Pattern pattern = Pattern.compile(
+"<searchVariation.+?>" +
+"<id>(.+?)</id>.+?" +
+"<title>(.+?)</title>.+?" +
+"<brandName>(.+?)</brandName>.+?" +
+"<produktBasisKlasse>(.+?)</produktBasisKlasse>.+?" +
+"<productType>(.+?)</productType>.+?" +
+"</searchVariation>",
+Pattern.CASE_INSENSITIVE + Pattern.MULTILINE + Pattern.DOTALL
+);
+
+Matcher matcher = pattern.matcher( corpusText );
+
+while ( matcher.find() ) {
+
+String docno = matcher.group( 1 ).trim();
+String title = matcher.group( 2 ).trim();
+String brand = matcher.group( 3 ).trim();
+String pbk = matcher.group( 4 ).trim();
+String ptype = matcher.group( 5 ).trim();
+
+// Create a Document object
+Document d = new Document();
+// Add each field to the document with the appropriate field type options
+d.add( new Field( "docno", docno, fieldTypeMetadata ) );
+d.add( new Field( "title", title, fieldTypeText ) );
+d.add( new Field( "brand", brand, fieldTypeText ) );
+d.add( new Field( "pbk", pbk, fieldTypeText ) );
+d.add( new Field( "ptype", ptype, fieldTypeText ) );
+// Add the document to the index
+System.out.println( "indexing document " + docno );
+ixwriter.addDocument( d );
+}
+
+System.out.println( "finished adding docs ...");
+ixwriter.commit();
+
+// remember to close both the index writer and the directory
+ixwriter.close();
+dir.close();
 ```
 
 You can download the Lucene index for the example corpus at https://github.com/otto-ec/search_lucene_101/blob/master/example_index_lucene.tar.gz
@@ -283,8 +291,8 @@ The following program retrieves the posting list for a term ```reformulation``` 
 String pathIndex = "example_index_lucene";
 
 // Let's just retrieve the posting list for the term "reformulation" in the "text" field
-String field = "text";
-String term = "reformulation";
+String field = "title";
+String term = "poster";
 
 Directory dir = FSDirectory.open( new File( pathIndex ).toPath() );
 IndexReader index = DirectoryReader.open( dir );
@@ -295,15 +303,15 @@ IndexReader index = DirectoryReader.open( dir );
 System.out.printf( "%-10s%-15s%-6s\n", "DOCID", "DOCNO", "FREQ" );
 PostingsEnum posting = MultiTerms.getTermPostingsEnum( index, field, new BytesRef( term ), PostingsEnum.FREQS );
 if ( posting != null ) { // if the term does not appear in any document, the posting object may be null
-    int docid;
-    // Each time you call posting.nextDoc(), it moves the cursor of the posting list to the next position
-    // and returns the docid of the current entry (document). Note that this is an internal Lucene docid.
-    // It returns PostingsEnum.NO_MORE_DOCS if you have reached the end of the posting list.
-    while ( ( docid = posting.nextDoc() ) != PostingsEnum.NO_MORE_DOCS ) {
-        String docno = LuceneUtils.getDocno( index, "docno", docid );
-        int freq = posting.freq(); // get the frequency of the term in the current document
-        System.out.printf( "%-10d%-15s%-6d\n", docid, docno, freq );
-    }
+int docid;
+// Each time you call posting.nextDoc(), it moves the cursor of the posting list to the next position
+// and returns the docid of the current entry (document). Note that this is an internal Lucene docid.
+// It returns PostingsEnum.NO_MORE_DOCS if you have reached the end of the posting list.
+while ( ( docid = posting.nextDoc() ) != PostingsEnum.NO_MORE_DOCS ) {
+String docno = LuceneUtils.getDocno( index, "docno", docid );
+int freq = posting.freq(); // get the frequency of the term in the current document
+System.out.printf( "%-10d%-15s%-6d\n", docid, docno, freq );
+}
 }
 
 index.close();
@@ -321,8 +329,8 @@ You can also retrieve a posting list with term postions in each document.
 String pathIndex = "example_index_lucene";
 
 // Let's just retrieve the posting list for the term "reformulation" in the "text" field
-String field = "text";
-String term = "reformulation";
+String field = "title";
+String term = "gardine";
 
 Directory dir = FSDirectory.open( new File( pathIndex ).toPath() );
 IndexReader index = DirectoryReader.open( dir );
@@ -337,21 +345,21 @@ fieldset.add( "docno" );
 System.out.printf( "%-10s%-15s%-10s%-20s\n", "DOCID", "DOCNO", "FREQ", "POSITIONS" );
 PostingsEnum posting = MultiTerms.getTermPostingsEnum( index, field, new BytesRef( term ), PostingsEnum.POSITIONS );
 if ( posting != null ) { // if the term does not appear in any document, the posting object may be null
-    int docid;
-    // Each time you call posting.nextDoc(), it moves the cursor of the posting list to the next position
-    // and returns the docid of the current entry (document). Note that this is an internal Lucene docid.
-    // It returns PostingsEnum.NO_MORE_DOCS if you have reached the end of the posting list.
-    while ( ( docid = posting.nextDoc() ) != PostingsEnum.NO_MORE_DOCS ) {
-        String docno = index.document( docid, fieldset ).get( "docno" );
-        int freq = posting.freq(); // get the frequency of the term in the current document
-        System.out.printf( "%-10d%-15s%-10d", docid, docno, freq );
-        for ( int i = 0; i < freq; i++ ) {
-            // Get the next occurrence position of the term in the current document.
-            // Note that you need to make sure by yourself that you at most call this function freq() times.
-            System.out.print( ( i > 0 ? "," : "" ) + posting.nextPosition() );
-        }
-        System.out.println();
-    }
+int docid;
+// Each time you call posting.nextDoc(), it moves the cursor of the posting list to the next position
+// and returns the docid of the current entry (document). Note that this is an internal Lucene docid.
+// It returns PostingsEnum.NO_MORE_DOCS if you have reached the end of the posting list.
+while ( ( docid = posting.nextDoc() ) != PostingsEnum.NO_MORE_DOCS ) {
+String docno = index.document( docid, fieldset ).get( "docno" );
+int freq = posting.freq(); // get the frequency of the term in the current document
+System.out.printf( "%-10d%-15s%-10d", docid, docno, freq );
+for ( int i = 0; i < freq; i++ ) {
+// Get the next occurrence position of the term in the current document.
+// Note that you need to make sure by yourself that you at most call this function freq() times.
+System.out.print( ( i > 0 ? "," : "" ) + posting.nextPosition() );
+}
+System.out.println();
+}
 }
 
 index.close();
@@ -368,7 +376,7 @@ which is a list of <word,frequency> pairs.
 String pathIndex = "example_index_lucene";
 
 // let's just retrieve the document vector (only the "text" field) for the Document with internal ID=21
-String field = "text";
+String field = "title";
 int docid = 21;
 
 Directory dir = FSDirectory.open( new File( pathIndex ).toPath() );
@@ -417,7 +425,7 @@ The following program prints out the length of text field for each document in t
 which also helps you understand how to work with a stored document vector:
 ```java
 String pathIndex = "example_index_lucene";
-String field = "text";
+String field = "title";
 
 Directory dir = FSDirectory.open( new File( pathIndex ).toPath() );
 IndexReader ixreader = DirectoryReader.open( dir );
@@ -450,7 +458,7 @@ vocabulary and some word statistics.
 String pathIndex = "example_index_lucene";
 
 // Let's just retrieve the vocabulary of the "text" field
-String field = "text";
+String field = "title";
 
 Directory dir = FSDirectory.open( new File( pathIndex ).toPath() );
 IndexReader index = DirectoryReader.open( dir );
@@ -468,16 +476,17 @@ TermsEnum termsEnum = voc.iterator();
 BytesRef term;
 int count = 0;
 while ( ( term = termsEnum.next() ) != null ) {
-    count++;
-    String termstr = term.utf8ToString(); // get the text string of the term
-    int n = termsEnum.docFreq(); // get the document frequency (DF) of the term
-    long freq = termsEnum.totalTermFreq(); // get the total frequency of the term
-    double idf = Math.log( ( N + 1.0 ) / ( n + 1.0 ) ); // well, we normalize N and n by adding 1 to avoid n = 0
-    double pwc = freq / corpusLength;
-    System.out.printf( "%-30s%-10d%-10d%-10.2f%-10.8f\n", termstr, n, freq, idf, pwc );
-    if ( count >= 100 ) {
-        break;
-    }
+count++;
+String termstr = term.utf8ToString(); // get the text string of the term
+int n = termsEnum.docFreq(); // get the document frequency (DF) of the term
+long freq = termsEnum.totalTermFreq(); // get the total frequency of the term
+double idf = Math.log( ( N + 1.0 ) / ( n + 1.0 ) ); // well, we normalize N and n by adding 1 to avoid n = 0
+double pwc = freq / corpusLength;
+if (pwc > 0.001 && termstr.length() > 1)
+System.out.printf( "%-30s%-10d%-10d%-10.2f%-10.8f\n", termstr, n, freq, idf, pwc );
+if ( count >= 10000 ) {
+break;
+}
 }
 
 index.close();
@@ -492,8 +501,8 @@ The follow program computes the IDF and corpus probability for the term ```refor
 String pathIndex = "example_index_lucene";
 
 // Let's just count the IDF and P(w|corpus) for the word "reformulation" in the "text" field
-String field = "text";
-String term = "reformulation";
+String field = "title";
+String term = "gardine";
 
 Directory dir = FSDirectory.open( new File( pathIndex ).toPath() );
 IndexReader index = DirectoryReader.open( dir );
@@ -522,58 +531,59 @@ from the example corpus using the BM25 search model. Note that we used the provi
 If you built your index based on Lucene's default ```BM25Similarity```, you should use the default ```BM25Similarity``` for BM25 search.  
 
 ```java
-  String pathIndex = "example_index_lucene";
-  
-  // Analyzer specifies options for text tokenization and normalization (e.g., stemming, stop words removal, case-folding)
-  Analyzer analyzer = new Analyzer() {
-      @Override
-      protected TokenStreamComponents createComponents( String fieldName ) {
-          // Step 1: tokenization (Lucene's StandardTokenizer is suitable for most text retrieval occasions)
-          TokenStreamComponents ts = new TokenStreamComponents( new StandardTokenizer() );
-          // Step 2: transforming all tokens into lowercased ones (recommended for the majority of the problems)
-          ts = new TokenStreamComponents( ts.getSource(), new LowerCaseFilter( ts.getTokenStream() ) );
-          // Step 3: whether to remove stop words (unnecessary to remove stop words unless you can't afford the extra disk space)
-          // Uncomment the following line to remove stop words
-          // ts = new TokenStreamComponents( ts.getSource(), new StopFilter( ts.getTokenStream(), EnglishAnalyzer.ENGLISH_STOP_WORDS_SET ) );
-          // Step 4: whether to apply stemming
-          // Uncomment one of the following two lines to apply Krovetz or Porter stemmer (Krovetz is more common for IR research)
-          ts = new TokenStreamComponents( ts.getSource(), new KStemFilter( ts.getTokenStream() ) );
-          // ts = new TokenStreamComponents( ts.getSource(), new PorterStemFilter( ts.getTokenStream() ) );
-          return ts;
-      }
-  };
-  
-  String field = "text"; // the field you hope to search for
-  QueryParser parser = new QueryParser( field, analyzer ); // a query parser that transforms a text string into Lucene's query object
-  
-  String qstr = "query reformulation"; // this is the textual search query
-  Query query = parser.parse( qstr ); // this is Lucene's query object
-  
-  // Okay, now let's open an index and search for documents
-  Directory dir = FSDirectory.open( new File( pathIndex ).toPath() );
-  IndexReader index = DirectoryReader.open( dir );
-  
-  // you need to create a Lucene searcher
-  IndexSearcher searcher = new IndexSearcher( index );
-  
-  // make sure the similarity class you are using is consistent with those being used for indexing
-  searcher.setSimilarity( new BM25SimilarityOriginal() );
-  
-  int top = 10; // Let's just retrieve the talk 10 results
-  TopDocs docs = searcher.search( query, top ); // retrieve the top 10 results; retrieved results are stored in TopDocs
-  
-  System.out.printf( "%-10s%-20s%-10s%s\n", "Rank", "DocNo", "Score", "Title" );
-  int rank = 1;
-  for ( ScoreDoc scoreDoc : docs.scoreDocs ) {
-      int docid = scoreDoc.doc;
-      double score = scoreDoc.score;
-      String docno = LuceneUtils.getDocno( index, "docno", docid );
-      String title = LuceneUtils.getDocno( index, "title", docid );
-      System.out.printf( "%-10d%-20s%-10.4f%s\n", rank, docno, score, title );
-      rank++;
-  }
-  
-  // remember to close the index and the directory
-  index.close();
-  dir.close();
+String pathIndex = "example_index_lucene";
+
+// Analyzer specifies options for text tokenization and normalization (e.g., stemming, stop words removal, case-folding)
+Analyzer analyzer = new Analyzer() {
+@Override
+protected TokenStreamComponents createComponents( String fieldName ) {
+// Step 1: tokenization (Lucene's StandardTokenizer is suitable for most text retrieval occasions)
+TokenStreamComponents ts = new TokenStreamComponents( new StandardTokenizer() );
+// Step 2: transforming all tokens into lowercased ones (recommended for the majority of the problems)
+ts = new TokenStreamComponents( ts.getSource(), new LowerCaseFilter( ts.getTokenStream() ) );
+// Step 3: whether to remove stop words (unnecessary to remove stop words unless you can't afford the extra disk space)
+// Uncomment the following line to remove stop words
+ts = new TokenStreamComponents( ts.getSource(), new StopFilter( ts.getTokenStream(), GermanAnalyzer.getDefaultStopSet()) );
+// Step 4: whether to apply stemming
+// Uncomment one of the following two lines to apply Krovetz or Porter stemmer (Krovetz is more common for IR research)
+ts = new TokenStreamComponents( ts.getSource(), new GermanLightStemFilter( ts.getTokenStream() ) );
+//ts = new TokenStreamComponents( ts.getSource(), new GermanStemFilter( ts.getTokenStream() ) );
+return ts;
+}
+};
+
+String field = "title"; // the field you hope to search for
+QueryParser parser = new QueryParser( field, analyzer ); // a query parser that transforms a text string into Lucene's query object
+
+String qstr = "gold"; // this is the textual search query
+Query query = parser.parse( qstr ); // this is Lucene's query object
+
+// Okay, now let's open an index and search for documents
+Directory dir = FSDirectory.open( new File( pathIndex ).toPath() );
+IndexReader index = DirectoryReader.open( dir );
+
+// you need to create a Lucene searcher
+IndexSearcher searcher = new IndexSearcher( index );
+
+// make sure the similarity class you are using is consistent with those being used for indexing
+searcher.setSimilarity( new BM25SimilarityOriginal() );
+
+int top = 100; // Let's just retrieve the talk 10 results
+TopDocs docs = searcher.search( query, top ); // retrieve the top 10 results; retrieved results are stored in TopDocs
+
+System.out.printf( "%-10s%-20s%-10s%-40s%s\n", "Rank", "DocNo", "Score", "PBK", "Title" );
+int rank = 1;
+for ( ScoreDoc scoreDoc : docs.scoreDocs ) {
+int docid = scoreDoc.doc;
+double score = scoreDoc.score;
+String docno = LuceneUtils.getDocno( index, "docno", docid );
+String pbk = LuceneUtils.getDocno( index, "pbk", docid );
+String title = LuceneUtils.getDocno( index, "title", docid );
+System.out.printf( "%-10d%-20s%-10.4f%-40s%s\n", rank, docno, score, pbk, title );
+rank++;
+}
+
+// remember to close the index and the directory
+index.close();
+dir.close();
 ```
