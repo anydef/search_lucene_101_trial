@@ -33,7 +33,7 @@ public class LuceneSearchExample {
     public static void main( String[] args ) {
         try {
 
-            String pathIndex = "example_index_lucene";
+            String pathIndex = "example_otto_index";
 
             // Analyzer specifies options for text tokenization and normalization (e.g., stemming, stop words removal, case-folding)
             Analyzer analyzer = new Analyzer() {

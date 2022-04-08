@@ -4,15 +4,8 @@ import org.apache.commons.compress.utils.IOUtils;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.LowerCaseFilter;
 import org.apache.lucene.analysis.StopFilter;
-import org.apache.lucene.analysis.TokenFilter;
 import org.apache.lucene.analysis.de.GermanAnalyzer;
 import org.apache.lucene.analysis.de.GermanLightStemFilter;
-import org.apache.lucene.analysis.de.GermanStemFilter;
-import org.apache.lucene.analysis.en.EnglishAnalyzer;
-import org.apache.lucene.analysis.en.KStemFilter;
-import org.apache.lucene.analysis.en.PorterStemFilter;
-import org.apache.lucene.analysis.en.PorterStemFilterFactory;
-import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.analysis.standard.StandardTokenizer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
@@ -22,8 +15,6 @@ import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
-import org.tartarus.snowball.ext.German2Stemmer;
-import org.tartarus.snowball.ext.PorterStemmer;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -45,7 +36,7 @@ public class LuceneBuildIndex {
 
             // change the following input and output paths to your local ones
             String pathCorpus = "example_search_variation_otto.xml.gz";
-            String pathIndex = "example_index_lucene";
+            String pathIndex = "example_otto_index";
 
             Directory dir = FSDirectory.open( new File( pathIndex ).toPath() );
 

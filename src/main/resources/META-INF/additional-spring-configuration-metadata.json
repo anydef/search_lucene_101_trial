@@ -1,0 +1,13 @@
+{
+  "properties": [
+    {
+      "name": "de.otto.search.index-path",
+      "type": "java.lang.String",
+      "description": "Description for de.otto.search.index-path."
+    },
+    {
+      "name": "de.otto.search.corpus-path",
+      "type": "java.lang.String",
+      "description": "Description for de.otto.search.corpus-path."
+    }
+  ] }
