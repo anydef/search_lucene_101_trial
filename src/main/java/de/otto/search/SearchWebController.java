@@ -26,7 +26,7 @@ public class SearchWebController {
     @ResponseBody
     public SearchResult query(@RequestParam("query_term") @NonNull final String queryTerm) {
         try {
-            return searcher.retrieve(queryTerm);
+            return searcher.retrieveByTitle(queryTerm);
         } catch (ParseException | IOException e) {
             log.error("Something went wrong while searching ...");
             throw new IllegalStateException(e);

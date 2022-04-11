@@ -8,6 +8,8 @@ import lombok.Value;
 @Value
 @RequiredArgsConstructor(staticName = "of")
 public class SearchDocument {
+    Integer documentId;
+    String docno;
     String title;
     String productBaseClass;
     Integer rank;

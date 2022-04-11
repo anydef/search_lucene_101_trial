@@ -16,11 +16,11 @@ public class SearchResult {
 
     Long numberFound;
 
-    List<SearchDocument> result = new ArrayList<>();
+    List<SearchDocument> documents = new ArrayList<>();
 
     public List<SearchDocument> addDocument(final SearchDocument searchDocument) {
-        result.add(searchDocument);
-        result.sort(Comparator.comparingInt(SearchDocument::getRank));
-        return result;
+        documents.add(searchDocument);
+        documents.sort(Comparator.comparingInt(SearchDocument::getRank));
+        return documents;
     }
 }
