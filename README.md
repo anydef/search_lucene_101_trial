@@ -2,6 +2,8 @@
 
 ## A Simple Spring Service  for learning and working with Lucene
 
+![image info](teacher-meme.jpeg)
+
 Outline:
 * [Prerequisites](#Prerequisites)
 * [Run](#Run)
