@@ -3,3 +3,4 @@
 /bin
 /example_index_lucene
 /example_otto_index
+*.iml
