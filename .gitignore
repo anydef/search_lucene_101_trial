@@ -1,5 +1,5 @@
-/target/
-/.idea/
-/bin/
-/example_index_lucene/
-/example_otto_index/
+/target
+/.idea
+/bin
+/example_index_lucene
+/example_otto_index
