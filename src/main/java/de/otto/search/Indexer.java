@@ -4,6 +4,13 @@ import edu.wisc.ischool.wiscir.examples.BM25SimilarityOriginal;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.compress.utils.IOUtils;
+import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.Tokenizer;
+import org.apache.lucene.analysis.TokenizerFactory;
+import org.apache.lucene.analysis.core.LowerCaseFilterFactory;
+import org.apache.lucene.analysis.custom.CustomAnalyzer;
+import org.apache.lucene.analysis.standard.ClassicTokenizerFactory;
+import org.apache.lucene.analysis.standard.StandardTokenizerFactory;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.FieldType;
@@ -12,6 +19,7 @@ import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
+import org.apache.lucene.util.AttributeFactory;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
@@ -111,7 +119,7 @@ public class Indexer {
             d.add(new Field("pbk", pbk, fieldTypeText));
             d.add(new Field("ptype", ptype, fieldTypeText));
             // Add the document to the index
-            log.info("indexing document {} - {}", docno, pbk);
+            log.info("indexing document {} - {} - {}", docno, pbk, title);
             ixwriter.addDocument(d);
         }
 
