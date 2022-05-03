@@ -41,7 +41,7 @@ example: ````http://localhost:8080/api/v1/search/query?query_term=pullover````
 There exists a ```trialday``` branch for the asignees where the corresponding solution (including the tests) has been removed.
 ### Search Task
 Currently the result for the query term "blaue strickjacke" leaves alot to be desired:
-Alot of Products that contain this property are not selected and returned leading to a [recall](https://en.wikipedia.org/wiki/Precision_and_recall#Recall)
+Alot of Products that contain this property are not selected and returned leading to a low[recall](https://en.wikipedia.org/wiki/Precision_and_recall#Recall)
 For example this [productvariation](https://www.otto.de/p/vila-strickjacke-viril-1-tlg-S082R048/#variationId=S082R048J552).        
 The mentioned product has a field **baseColor** which has the value *blau* which should match based on our query term.
 For additional info the structure of a productvariation can be seen under ``example_search_variation_entry.xml``
