@@ -22,11 +22,11 @@ public class SearchWebController {
 
     private final Searcher searcher;
 
-    @GetMapping(path = "/retrieve")
+    @GetMapping(path = "/query")
     @ResponseBody
     public SearchResult query(@RequestParam("query_term") @NonNull final String queryTerm) {
         try {
-            return searcher.retrieveByTitle(queryTerm);
+            return searcher.retrieve(queryTerm);
         } catch (ParseException | IOException e) {
             log.error("Something went wrong while searching ...");
             throw new IllegalStateException(e);

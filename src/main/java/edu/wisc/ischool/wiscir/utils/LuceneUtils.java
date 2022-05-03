@@ -41,7 +41,7 @@ public class LuceneUtils {
     }
 
     /**
-     * Get the DocNo (external ID) of a document stored in the index by its internal id.
+     * Returns the given field value for a given document
      *
      * @param index      An index reader.
      * @param fieldDocno The name of the field you used for storing docnos (external document IDs).
@@ -49,7 +49,7 @@ public class LuceneUtils {
      * @return The docno (external ID) of the document.
      * @throws IOException
      */
-    public static String getDocno( IndexReader index, String fieldDocno, int docid ) throws IOException {
+    public static String getDocField(IndexReader index, String fieldDocno, int docid ) throws IOException {
         // This implementation is just for you to quickly understand how this works.
         // You should consider reuse the fieldset if you need to read docnos for a lot of documents.
         Set<String> fieldset = new HashSet<>();

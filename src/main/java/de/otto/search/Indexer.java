@@ -1,16 +1,13 @@
 package de.otto.search;
 
+import de.otto.search.xmlparsing.XmlParser;
+import de.otto.srch.searchvariation.domain.SearchAttributes;
+import de.otto.srch.searchvariation.domain.SearchBrand;
+import de.otto.srch.searchvariation.domain.SearchProductTypes;
+import de.otto.srch.searchvariation.domain.SearchVariation;
 import edu.wisc.ischool.wiscir.examples.BM25SimilarityOriginal;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.compress.utils.IOUtils;
-import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.analysis.Tokenizer;
-import org.apache.lucene.analysis.TokenizerFactory;
-import org.apache.lucene.analysis.core.LowerCaseFilterFactory;
-import org.apache.lucene.analysis.custom.CustomAnalyzer;
-import org.apache.lucene.analysis.standard.ClassicTokenizerFactory;
-import org.apache.lucene.analysis.standard.StandardTokenizerFactory;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.FieldType;
@@ -19,17 +16,18 @@ import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
-import org.apache.lucene.util.AttributeFactory;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
+import javax.xml.bind.JAXBException;
+import javax.xml.stream.XMLStreamException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.List;
+import java.util.Optional;
 import java.util.zip.GZIPInputStream;
 
 @Slf4j
@@ -42,13 +40,15 @@ public class Indexer {
     @EventListener(ApplicationReadyEvent.class)
     public void run() {
         try {
+            log.info("indexing ...");
             this.index(propertyConfiguration.getIndexPath(), propertyConfiguration.getCorpusPath());
-        } catch (IOException e) {
+            log.info("finished indexing");
+        } catch (Exception e) {
             log.error("Something went wrong while indexing ...", e);
         }
     }
 
-    public void index(final String indexPath, final String corpusPath) throws IOException {
+    public void index(final String indexPath, String corpusPath) throws IOException, JAXBException, XMLStreamException {
         Directory dir = FSDirectory.open(new File(indexPath).toPath());
 
         final SimpleGermanAnalyzer simpleGermanAnalyzer = new SimpleGermanAnalyzer();
@@ -86,41 +86,48 @@ public class Indexer {
 
         // Well, the following only works for small text files. DO NOT follow this part for large dataset files.
         InputStream instream = new GZIPInputStream(new FileInputStream(corpusPath));
-        String corpusText = new String(IOUtils.toByteArray(instream), "UTF-8");
+        final List<SearchVariation> variations = XmlParser.toSearchVariationsStreamBased(instream);
+
+        log.info("unmarschall: {}", variations);
+
         instream.close();
 
-        Pattern pattern = Pattern.compile(
-                "<searchVariation.+?>" +
-                        "<id>(.+?)</id>.+?" +
-                        "<title>(.+?)</title>.+?" +
-                        "<brandName>(.+?)</brandName>.+?" +
-                        "<produktBasisKlasse>(.+?)</produktBasisKlasse>.+?" +
-                        "<productType>(.+?)</productType>.+?" +
-                        "</searchVariation>",
-                Pattern.CASE_INSENSITIVE + Pattern.MULTILINE + Pattern.DOTALL
-        );
+        for (SearchVariation variation : variations) {
 
-        Matcher matcher = pattern.matcher(corpusText);
-
-        while (matcher.find()) {
-
-            String docno = matcher.group(1).trim();
-            String title = matcher.group(2).trim();
-            String brand = matcher.group(3).trim();
-            String pbk = matcher.group(4).trim();
-            String ptype = matcher.group(5).trim();
+            final Optional<SearchBrand> brand = variation.getBrand();
+            final SearchProductTypes productTypes = variation.getProductTypes();
+            final SearchAttributes attributes = variation.getAttributes();
 
             // Create a Document object
-            Document d = new Document();
+            Document document = new Document();
+
             // Add each field to the document with the appropriate field type options
-            d.add(new Field("docno", docno, fieldTypeMetadata));
-            d.add(new Field("title", title, fieldTypeText));
-            d.add(new Field("brand", brand, fieldTypeText));
-            d.add(new Field("pbk", pbk, fieldTypeText));
-            d.add(new Field("ptype", ptype, fieldTypeText));
-            // Add the document to the index
-            log.info("indexing document {} - {} - {}", docno, pbk, title);
-            ixwriter.addDocument(d);
+            document.add(new Field(FieldDefinition.DOCNO.getFieldName(), variation.getId(), fieldTypeMetadata));
+            document.add(new Field(FieldDefinition.TITLE.getFieldName(), variation.getTitle(), fieldTypeText));
+            document.add(new Field(FieldDefinition.PRODUKT_BASIS_KLASSE.getFieldName(), variation.getProduktBasisKlasse(), fieldTypeText));
+
+            brand.ifPresent(searchBrand -> {
+                document.add(new Field(FieldDefinition.BRAND.getFieldName(), searchBrand.getBrandName(), fieldTypeText));
+            });
+
+            Optional.ofNullable(productTypes)
+                    .ifPresent(searchProductTypes -> {
+                        final String types = String.join(" ", searchProductTypes.getProductTypes());
+                        document.add(new Field(FieldDefinition.PRODUCT_TYPE.getFieldName(), types, fieldTypeText));
+                    });
+
+            attributes.getTextAttributes()
+                    .stream()
+                    .filter(searchAttributeText -> FieldDefinition.COLOR.getFieldName().equals(searchAttributeText.getName()))
+                    .findAny()
+                    .ifPresent(searchAttributeText -> {
+                        final String colors = String.join(" ", searchAttributeText.getAttributeValues());
+                        document.add(new Field(FieldDefinition.COLOR.getFieldName(), colors, fieldTypeText));
+                    });
+
+
+            log.info("indexing document: {} - {}", variation.getId(), variation.getTitle());
+            ixwriter.addDocument(document);
         }
 
         log.info("finished adding docs ...");

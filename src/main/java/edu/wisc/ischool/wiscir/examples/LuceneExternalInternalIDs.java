@@ -38,7 +38,7 @@ public class LuceneExternalInternalIDs {
             // You can get the maximum internal ID + 1 by calling index.maxDoc().
             // So you can iterate through all indexed documents by a simple for loop as follows.
             for ( int docid = 0; docid < index.maxDoc(); docid++ ) {
-                String docno = LuceneUtils.getDocno( index, fieldName, docid );
+                String docno = LuceneUtils.getDocField( index, fieldName, docid );
                 docnos.add( docno );
                 System.out.printf( "%-15d%-20s\n", docid, docno );
             }

@@ -6,8 +6,6 @@ import org.apache.lucene.analysis.LowerCaseFilter;
 import org.apache.lucene.analysis.StopFilter;
 import org.apache.lucene.analysis.de.GermanAnalyzer;
 import org.apache.lucene.analysis.de.GermanLightStemFilter;
-import org.apache.lucene.analysis.en.EnglishAnalyzer;
-import org.apache.lucene.analysis.en.KStemFilter;
 import org.apache.lucene.analysis.standard.StandardTokenizer;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
@@ -16,7 +14,6 @@ import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
-import org.apache.lucene.search.similarities.BM25Similarity;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 
@@ -78,9 +75,9 @@ public class LuceneSearchExample {
             for ( ScoreDoc scoreDoc : docs.scoreDocs ) {
                 int docid = scoreDoc.doc;
                 double score = scoreDoc.score;
-                String docno = LuceneUtils.getDocno( index, "docno", docid );
-                String pbk = LuceneUtils.getDocno( index, "pbk", docid );
-                String title = LuceneUtils.getDocno( index, "title", docid );
+                String docno = LuceneUtils.getDocField( index, "docno", docid );
+                String pbk = LuceneUtils.getDocField( index, "pbk", docid );
+                String title = LuceneUtils.getDocField( index, "title", docid );
                 System.out.printf( "%-10d%-20s%-10.4f%-40s%s\n", rank, docno, score, pbk, title );
                 rank++;
             }

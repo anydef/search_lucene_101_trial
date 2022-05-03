@@ -39,7 +39,7 @@ public class LuceneReadFreqPosting {
                 // and returns the docid of the current entry (document). Note that this is an internal Lucene docid.
                 // It returns PostingsEnum.NO_MORE_DOCS if you have reached the end of the posting list.
                 while ( ( docid = posting.nextDoc() ) != PostingsEnum.NO_MORE_DOCS ) {
-                    String docno = LuceneUtils.getDocno( index, "docno", docid );
+                    String docno = LuceneUtils.getDocField( index, "docno", docid );
                     int freq = posting.freq(); // get the frequency of the term in the current document
                     System.out.printf( "%-10d%-15s%-6d\n", docid, docno, freq );
                 }
