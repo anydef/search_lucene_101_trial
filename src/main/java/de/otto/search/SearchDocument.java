@@ -14,5 +14,4 @@ public class SearchDocument {
     String productBaseClass;
     Integer rank;
     Double BM25Score;
-    String color;
 }

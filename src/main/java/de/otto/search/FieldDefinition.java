@@ -9,9 +9,7 @@ public enum FieldDefinition {
     PRODUCT_TYPE("ptype"),
     TITLE("title"),
     PRODUKT_BASIS_KLASSE("pbk"),
-    BRAND("brand"),
-    COLOR("baseColor");
-
+    BRAND("brand");
     final private String fieldName;
 
     FieldDefinition(String name) {

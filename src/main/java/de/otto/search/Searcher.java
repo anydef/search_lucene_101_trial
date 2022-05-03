@@ -25,7 +25,6 @@ public class Searcher {
 
     private final PropertyConfiguration propertyConfiguration;
 
-
     public SearchDocument getByDocNo(final String variationId) throws ParseException, IOException {
 
         String pathIndex = propertyConfiguration.getIndexPath();
@@ -51,20 +50,14 @@ public class Searcher {
 
         String pbk = LuceneUtils.getDocField(index, FieldDefinition.PRODUKT_BASIS_KLASSE.getFieldName(), docid);
         String title = LuceneUtils.getDocField(index, FieldDefinition.TITLE.getFieldName(), docid);
-        String color = LuceneUtils.getDocField(index, FieldDefinition.COLOR.getFieldName(), docid);
 
-        return SearchDocument.of(docid, variationId, title, pbk, 1, 1.0, color);
+        return SearchDocument.of(docid, variationId, title, pbk, 1, 1.0);
     }
 
     public SearchResult retrieve(String queryTerm) throws ParseException, IOException {
         String pathIndex = propertyConfiguration.getIndexPath();
 
-        MultiFieldQueryParser parser = new MultiFieldQueryParser(
-                new String[]{
-                        FieldDefinition.TITLE.getFieldName(),
-                        FieldDefinition.COLOR.getFieldName()
-                },
-                new SimpleGermanAnalyzer()); // a query parser that transforms a text string into Lucene's query object
+        QueryParser parser = new QueryParser(FieldDefinition.TITLE.getFieldName(), new SimpleGermanAnalyzer()); // a query parser that transforms a text string into Lucene's query object
 
         parser.setDefaultOperator(QueryParser.Operator.AND);
         Query query = parser.parse(queryTerm); // this is Lucene's query object
@@ -91,9 +84,8 @@ public class Searcher {
             String docno = LuceneUtils.getDocField(index, FieldDefinition.DOCNO.getFieldName(), docid);
             String pbk = LuceneUtils.getDocField(index, FieldDefinition.PRODUKT_BASIS_KLASSE.getFieldName(), docid);
             String title = LuceneUtils.getDocField(index, FieldDefinition.TITLE.getFieldName(), docid);
-            String color = LuceneUtils.getDocField(index, FieldDefinition.COLOR.getFieldName(), docid);
 
-            final SearchDocument document = SearchDocument.of(docid, docno, title, pbk, rank, score, color);
+            final SearchDocument document = SearchDocument.of(docid, docno, title, pbk, rank, score);
             searchResult.addDocument(document);
             rank++;
         }

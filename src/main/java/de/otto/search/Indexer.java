@@ -96,7 +96,6 @@ public class Indexer {
 
             final Optional<SearchBrand> brand = variation.getBrand();
             final SearchProductTypes productTypes = variation.getProductTypes();
-            final SearchAttributes attributes = variation.getAttributes();
 
             // Create a Document object
             Document document = new Document();
@@ -114,15 +113,6 @@ public class Indexer {
                     .ifPresent(searchProductTypes -> {
                         final String types = String.join(" ", searchProductTypes.getProductTypes());
                         document.add(new Field(FieldDefinition.PRODUCT_TYPE.getFieldName(), types, fieldTypeText));
-                    });
-
-            attributes.getTextAttributes()
-                    .stream()
-                    .filter(searchAttributeText -> FieldDefinition.COLOR.getFieldName().equals(searchAttributeText.getName()))
-                    .findAny()
-                    .ifPresent(searchAttributeText -> {
-                        final String colors = String.join(" ", searchAttributeText.getAttributeValues());
-                        document.add(new Field(FieldDefinition.COLOR.getFieldName(), colors, fieldTypeText));
                     });
 
 
