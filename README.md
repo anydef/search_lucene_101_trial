@@ -50,7 +50,7 @@ For additional info the structure of a productvariation can be seen under ``exam
 * Make the product mentioned above occur in the search result with the query term "blaue strickjacke"
 
 ##### How to solve the task
-* Expand the regular expression in the `Indexer` so that the **baseColor** field is indexed
+* Expand the document in the `Indexer` so that the **baseColor** field is indexed
 * Switch out the standard Lucene ```QueryParser``` for the ``MultiFieldQueryParser`` and incorporate the **baseColor**
 * The default token operator should be set to AND
 * The solution must be tested
