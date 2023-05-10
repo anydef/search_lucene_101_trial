@@ -48,14 +48,3 @@ For additional info the structure of a productvariation can be seen under ``exam
 
 ##### Goal:
 * Make the product mentioned above occur in the search result with the query term "blaue strickjacke"
-
-##### How to solve the task
-* Expand the document in the `Indexer` so that the **baseColor** field is indexed
-* Switch out the standard Lucene ```QueryParser``` for the ``MultiFieldQueryParser`` and incorporate the **baseColor**
-* The default token operator should be set to AND
-* The solution must be tested
-
-##### Keypoints / Challenges
-* Lucene knowledge concerning the MultiFieldQueryParser
-* Implementation of a Spring integration test
-* Navigating through a new code base
