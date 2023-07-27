@@ -38,7 +38,6 @@ with request parameter ````query_term````
 example: ````http://localhost:8080/api/v1/search/query?query_term=pullover````
 
 ## Tasks
-There exists a ```trialday``` branch for the asignees where the corresponding solution (including the tests) has been removed.
 ### Search Task
 Currently the result for the query term "blaue strickjacke" leaves alot to be desired:
 Alot of Products that contain this property are not selected and returned leading to a low [recall](https://en.wikipedia.org/wiki/Precision_and_recall#Recall)
